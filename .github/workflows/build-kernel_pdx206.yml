@@ -2,9 +2,7 @@ name: Build Kernel pdx206
 on:
 
   workflow_dispatch:
-
-  schedule:
-    - cron:  '0 8 * * 5'
+  workflow_call:
 
 jobs:
   build:
@@ -59,6 +57,13 @@ jobs:
         echo "KSU_EXPECTED_SIZE=$(cat $CONFIG_ENV | grep -w "KSU_EXPECTED_SIZE" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
         echo "KSU_EXPECTED_HASH=$(cat $CONFIG_ENV | grep -w "KSU_EXPECTED_HASH" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
         echo "REMOVE_UNUSED_PACKAGES=$(cat $CONFIG_ENV | grep -w "REMOVE_UNUSED_PACKAGES" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+
+    - name: Set KERNELSU_TAG
+      if: vars.KERNELSU_LATEST_TAG != ''
+      run: echo "KERNELSU_TAG=${{ vars.KERNELSU_LATEST_TAG }}" >> $GITHUB_ENV
+    - name: Set PDX206_BOOT_SHA256
+      if: vars.PDX206_SOURCE_BOOT_IMAGE != ''
+      run: echo "SOURCE_BOOT_IMAGE=${{ vars.PDX206_SOURCE_BOOT_IMAGE }}" >> $GITHUB_ENV
 
     - name: Remove unused packages
       if: env.REMOVE_UNUSED_PACKAGES == 'true'

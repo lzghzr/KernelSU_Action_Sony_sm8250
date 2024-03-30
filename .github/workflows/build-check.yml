@@ -1,0 +1,66 @@
+name: Build Check
+on:
+
+  workflow_dispatch:
+
+  schedule:
+    - cron:  '0 8 * * *'
+
+jobs:
+  check:
+    name: Build Check 
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check KernelSU
+      run: |
+        echo "tags=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags')" >> $GITHUB_ENV
+        tag=${{ fromJSON(env.tags)[0].name }}
+        if [ "$tag" != "${{ vars.KERNELSU_LATEST_TAG }}" ]
+          echo "ksu_update=true" >> $GITHUB_ENV
+          gh api \
+          --method PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/lzghzr/KernelSU_Action_Sony_sm8250/actions/variables/KERNELSU_LATEST_TAG \
+          -f name='KERNELSU_LATEST_TAG' \
+          -f value='$tag' 
+        fi
+
+    - name: Check PDX203
+      run: |
+        echo "pdx203_boots=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds')" >> $GITHUB_ENV
+        pdx203_boot=${{ fromJSON(env.pdx203_boots)[0].files[1].url }}
+        if [ "$pdx203_boot" != "${{ vars.PDX203_SOURCE_BOOT_IMAGE }}" ]
+          echo "pdx203_boot_update=true" >> $GITHUB_ENV
+          gh api \
+          --method PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/lzghzr/KernelSU_Action_Sony_sm8250/actions/variables/PDX203_SOURCE_BOOT_IMAGE \
+          -f name='PDX203_SOURCE_BOOT_IMAGE' \
+          -f value='$pdx203_boot' 
+        fi
+
+    - name: Check PDX206
+      run: |
+        echo "pdx206_boots=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds')" >> $GITHUB_ENV
+        pdx206_boot=${{ fromJSON(env.pdx206_boots)[0].files[1].url }}
+        if [ "$pdx206_boot" != "${{ vars.PDX206_SOURCE_BOOT_IMAGE }}" ]
+          echo "pdx206_boot_update=true" >> $GITHUB_ENV
+          gh api \
+          --method PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/lzghzr/KernelSU_Action_Sony_sm8250/actions/variables/PDX206_SOURCE_BOOT_IMAGE \
+          -f name='PDX206_SOURCE_BOOT_IMAGE' \
+          -f value='$pdx206_boot' 
+        fi
+
+    - name: Build PDX203
+      if: env.ksu_update == 'true' || env.pdx203_boot_update == 'true'
+      uses: ./build-kernel_pdx203.yml
+
+    - name: Build PDX206
+      if: env.ksu_update == 'true' || env.pdx206_boot_update == 'true'
+      uses: ./build-kernel_pdx206.yml
