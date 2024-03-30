@@ -1,8 +1,14 @@
 name: Build Kernel pdx206
 on:
-
   workflow_dispatch:
   workflow_call:
+    inputs:
+      KERNELSU_LATEST_TAG:
+       type: string
+       required: true
+      PDX206_SOURCE_BOOT_IMAGE:
+       type: string
+       required: true
 
 jobs:
   build:

@@ -1,8 +1,14 @@
 name: Build Kernel pdx203
 on:
-
   workflow_dispatch:
   workflow_call:
+    inputs:
+      KERNELSU_LATEST_TAG:
+       type: string
+       required: true
+      PDX203_SOURCE_BOOT_IMAGE:
+       type: string
+       required: true
 
 jobs:
   build:
