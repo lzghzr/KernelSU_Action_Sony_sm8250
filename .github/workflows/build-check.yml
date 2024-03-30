@@ -30,6 +30,8 @@ jobs:
           -f name='KERNELSU_LATEST_TAG' \
           -f value='$tag' 
         fi
+      env:
+        GH_TOKEN: ${{ github.token }}
 
     - name: Check PDX203
       run: |
@@ -44,6 +46,8 @@ jobs:
           -f name='PDX203_SOURCE_BOOT_IMAGE' \
           -f value='$pdx203_boot' 
         fi
+      env:
+        GH_TOKEN: ${{ github.token }}
 
     - name: Check PDX206
       run: |
@@ -58,6 +62,8 @@ jobs:
           -f name='PDX206_SOURCE_BOOT_IMAGE' \
           -f value='$pdx206_boot' 
         fi
+      env:
+        GH_TOKEN: ${{ github.token }}
 
     - name: Build PDX203
       if: env.ksu_update == 'true' || env.pdx203_boot_update == 'true'
