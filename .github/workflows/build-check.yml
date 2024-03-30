@@ -12,6 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
+    - name: Prepare Configuration
+      run: |
+        echo "KERNELSU_LATEST_TAG=$(cat variables.env | grep -w "KERNELSU_LATEST_TAG" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+        echo "PDX203_SOURCE_BOOT_IMAGE=$(cat variables.env | grep -w "PDX203_SOURCE_BOOT_IMAGE" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+        echo "PDX206_SOURCE_BOOT_IMAGE=$(cat variables.env | grep -w "PDX206_SOURCE_BOOT_IMAGE" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+
     - name: Setup environment
       run: |
         sudo apt-get update
@@ -20,50 +27,26 @@ jobs:
     - name: Check KernelSU
       run: |
         tag=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags' | jq -r '.[0].name')
-        if [ "$tag" != "${{ vars.KERNELSU_LATEST_TAG }}" ]; then
+        if [ "$tag" != "${{ env.KERNELSU_LATEST_TAG }}" ]; then
           echo "ksu_update=true" >> $GITHUB_ENV
-          gh api \
-          --method PATCH \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/lzghzr/KernelSU_Action_Sony_sm8250/actions/variables/KERNELSU_LATEST_TAG \
-          -f name='KERNELSU_LATEST_TAG' \
-          -f value='$tag' 
+          echo "KERNELSU_LATEST_TAG=$tag" >> $GITHUB_ENV
         fi
-      env:
-        GH_TOKEN: ${{ github.token }}
 
     - name: Check PDX203
       run: |
         pdx203_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds' | jq -r '.[0].files[] | select(.filename == "boot.img") | .url')
-        if [ "$pdx203_boot" != "${{ vars.PDX203_SOURCE_BOOT_IMAGE }}" ]; then
+        if [ "$pdx203_boot" != "${{ env.PDX203_SOURCE_BOOT_IMAGE }}" ]; then
           echo "pdx203_boot_update=true" >> $GITHUB_ENV
-          gh api \
-          --method PATCH \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/lzghzr/KernelSU_Action_Sony_sm8250/actions/variables/PDX203_SOURCE_BOOT_IMAGE \
-          -f name='PDX203_SOURCE_BOOT_IMAGE' \
-          -f value='$pdx203_boot' 
+          echo "PDX203_SOURCE_BOOT_IMAGE=$pdx203_boot" >> $GITHUB_ENV
         fi
-      env:
-        GH_TOKEN: ${{ github.token }}
 
     - name: Check PDX206
       run: |
         pdx206_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds' | jq -r '.[0].files[] | select(.filename == "boot.img") | .url')
-        if [ "$pdx206_boot" != "${{ vars.PDX206_SOURCE_BOOT_IMAGE }}" ]; then
+        if [ "$pdx206_boot" != "${{ env.PDX206_SOURCE_BOOT_IMAGE }}" ]; then
           echo "pdx206_boot_update=true" >> $GITHUB_ENV
-          gh api \
-          --method PATCH \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/lzghzr/KernelSU_Action_Sony_sm8250/actions/variables/PDX206_SOURCE_BOOT_IMAGE \
-          -f name='PDX206_SOURCE_BOOT_IMAGE' \
-          -f value='$pdx206_boot' 
+          echo "PDX206_SOURCE_BOOT_IMAGE=$pdx206_boot" >> $GITHUB_ENV
         fi
-      env:
-        GH_TOKEN: ${{ github.token }}
 
     - name: Build PDX203
       if: env.ksu_update == 'true' || env.pdx203_boot_update == 'true'
@@ -72,3 +55,14 @@ jobs:
     - name: Build PDX206
       if: env.ksu_update == 'true' || env.pdx206_boot_update == 'true'
       uses: ./build-kernel_pdx206.yml
+
+    - name: Commit variables
+      if: env.ksu_update == 'true' || env.pdx203_boot_update == 'true' || env.pdx206_boot_update == 'true'
+      run: |
+        echo "KERNELSU_LATEST_TAG=${{ env.KERNELSU_LATEST_TAG }}" > variables.env
+        echo "PDX203_SOURCE_BOOT_IMAGE=${{ env.PDX203_SOURCE_BOOT_IMAGE }}" >> variables.env
+        echo "PDX206_SOURCE_BOOT_IMAGE=${{ env.PDX206_SOURCE_BOOT_IMAGE }}" >> variables.env
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add variables.env
+        git diff-index --cached --quiet HEAD -- || (git commit -m "variables" && git push)

@@ -59,11 +59,12 @@ jobs:
         echo "REMOVE_UNUSED_PACKAGES=$(cat $CONFIG_ENV | grep -w "REMOVE_UNUSED_PACKAGES" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
 
     - name: Set KERNELSU_TAG
-      if: vars.KERNELSU_LATEST_TAG != ''
-      run: echo "KERNELSU_TAG=${{ vars.KERNELSU_LATEST_TAG }}" >> $GITHUB_ENV
-    - name: Set PDX203_BOOT_SHA256
-      if: vars.PDX203_SOURCE_BOOT_IMAGE != ''
-      run: echo "SOURCE_BOOT_IMAGE=${{ vars.PDX203_SOURCE_BOOT_IMAGE }}" >> $GITHUB_ENV
+      run: |
+        echo "KERNELSU_TAG=$(cat variables.env | grep -w "KERNELSU_LATEST_TAG" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+
+    - name: Set PDX203_SOURCE_BOOT_IMAGE
+      run: |
+        echo "SOURCE_BOOT_IMAGE=$(cat variables.env | grep -w "PDX203_SOURCE_BOOT_IMAGE" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
 
     - name: Remove unused packages
       if: env.REMOVE_UNUSED_PACKAGES == 'true'
