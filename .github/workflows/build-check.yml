@@ -50,11 +50,11 @@ jobs:
 
     - name: Build PDX203
       if: env.ksu_update == 'true' || env.pdx203_boot_update == 'true'
-      uses: ./build-kernel_pdx203.yml
+      uses: ./.github/workflows/build-kernel_pdx203.yml
 
     - name: Build PDX206
       if: env.ksu_update == 'true' || env.pdx206_boot_update == 'true'
-      uses: ./build-kernel_pdx206.yml
+      uses: ./.github/workflows/build-kernel_pdx206.yml
 
     - name: Commit variables
       if: env.ksu_update == 'true' || env.pdx203_boot_update == 'true' || env.pdx206_boot_update == 'true'
