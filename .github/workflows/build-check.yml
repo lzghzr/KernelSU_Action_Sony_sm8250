@@ -33,7 +33,7 @@ jobs:
 
     - name: Check PDX203
       run: |
-        pdx203_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds' | jq -r '.[0].files.[1].url')
+        pdx203_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds' | jq -r '.[0].files[] | select(.filename == "boot.img") | .url')
         if [ "$pdx203_boot" != "${{ vars.PDX203_SOURCE_BOOT_IMAGE }}" ]; then
           echo "pdx203_boot_update=true" >> $GITHUB_ENV
           gh api \
@@ -47,7 +47,7 @@ jobs:
 
     - name: Check PDX206
       run: |
-        pdx206_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds' | jq -r '.[0].files.[1].url')
+        pdx206_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds' | jq -r '.[0].files[] | select(.filename == "boot.img") | .url')
         if [ "$pdx206_boot" != "${{ vars.PDX206_SOURCE_BOOT_IMAGE }}" ]; then
           echo "pdx206_boot_update=true" >> $GITHUB_ENV
           gh api \
