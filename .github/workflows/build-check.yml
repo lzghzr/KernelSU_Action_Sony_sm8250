@@ -14,13 +14,12 @@ jobs:
     steps:
     - name: Setup environment
       run: |
-        sudo apt update
-        sudo apt install curl
+        sudo apt-get update
+        sudo apt-get install curl jq 
 
     - name: Check KernelSU
       run: |
-        echo "tags=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags')" >> $GITHUB_ENV
-        tag=${{ fromJSON(env.tags)[0].name }}
+        tag=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags' | jq -r '.[0].name')
         if [ "$tag" != "${{ vars.KERNELSU_LATEST_TAG }}" ]
           echo "ksu_update=true" >> $GITHUB_ENV
           gh api \
@@ -34,8 +33,7 @@ jobs:
 
     - name: Check PDX203
       run: |
-        echo "pdx203_boots=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds')" >> $GITHUB_ENV
-        pdx203_boot=${{ fromJSON(env.pdx203_boots)[0].files[1].url }}
+        pdx203_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds' | jq -r '.[0].files.[1].url')
         if [ "$pdx203_boot" != "${{ vars.PDX203_SOURCE_BOOT_IMAGE }}" ]
           echo "pdx203_boot_update=true" >> $GITHUB_ENV
           gh api \
@@ -49,8 +47,7 @@ jobs:
 
     - name: Check PDX206
       run: |
-        echo "pdx206_boots=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds')" >> $GITHUB_ENV
-        pdx206_boot=${{ fromJSON(env.pdx206_boots)[0].files[1].url }}
+        pdx206_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds' | jq -r '.[0].files.[1].url')
         if [ "$pdx206_boot" != "${{ vars.PDX206_SOURCE_BOOT_IMAGE }}" ]
           echo "pdx206_boot_update=true" >> $GITHUB_ENV
           gh api \
