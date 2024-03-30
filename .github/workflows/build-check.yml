@@ -12,6 +12,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Setup environment
+      run: |
+        sudo apt update
+        sudo apt install curl
+
     - name: Check KernelSU
       run: |
         echo "tags=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags')" >> $GITHUB_ENV
