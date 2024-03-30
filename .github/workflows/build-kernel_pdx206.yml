@@ -60,11 +60,11 @@ jobs:
 
     - name: Set KERNELSU_TAG
       run: |
-        echo "KERNELSU_TAG=$(cat variables.env | grep -w "KERNELSU_LATEST_TAG" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+        echo "KERNELSU_TAG=${{ inputs.KERNELSU_LATEST_TAG }}" >> $GITHUB_ENV
 
-    - name: Set PDX206_SOURCE_BOOT_IMAGE
+    - name: Set SOURCE_BOOT_IMAGE
       run: |
-        echo "SOURCE_BOOT_IMAGE=$(cat variables.env | grep -w "PDX206_SOURCE_BOOT_IMAGE" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+        echo "SOURCE_BOOT_IMAGE=${{ inputs.PDX206_SOURCE_BOOT_IMAGE }}" >> $GITHUB_ENV
 
     - name: Remove unused packages
       if: env.REMOVE_UNUSED_PACKAGES == 'true'

@@ -13,8 +13,11 @@ jobs:
 
     outputs:
       ksu: ${{ steps.ksu.outputs.ksu_update }}
+      KERNELSU_LATEST_TAG: ${{ steps.ksu.outputs.KERNELSU_LATEST_TAG }}
       pdx203_boot: ${{ steps.pdx203_boot.outputs.pdx203_boot_update }}
-      pdx206_boot: ${{ steps.pdx203_boot.outputs.pdx206_boot_update }}
+      PDX203_SOURCE_BOOT_IMAGE: ${{ steps.pdx203_boot.outputs.PDX203_SOURCE_BOOT_IMAGE }}
+      pdx206_boot: ${{ steps.pdx206_boot.outputs.pdx206_boot_update }}
+      PDX206_SOURCE_BOOT_IMAGE: ${{ steps.pdx206_boot.outputs.PDX206_SOURCE_BOOT_IMAGE }}
 
     steps:
     - uses: actions/checkout@v4
@@ -37,6 +40,7 @@ jobs:
           echo "ksu_update=true" >> $GITHUB_ENV
           echo "ksu_update=true" >> $GITHUB_OUTPUT
           echo "KERNELSU_LATEST_TAG=$tag" >> $GITHUB_ENV
+          echo "KERNELSU_LATEST_TAG=$tag" >> $GITHUB_OUTPUT
         fi
 
     - name: Check PDX203
@@ -47,6 +51,7 @@ jobs:
           echo "pdx203_boot_update=true" >> $GITHUB_ENV
           echo "pdx203_boot_update=true" >> $GITHUB_OUTPUT
           echo "PDX203_SOURCE_BOOT_IMAGE=$pdx203_boot" >> $GITHUB_ENV
+          echo "PDX203_SOURCE_BOOT_IMAGE=$pdx203_boot" >> $GITHUB_OUTPUT
         fi
 
     - name: Check PDX206
@@ -57,6 +62,7 @@ jobs:
           echo "pdx206_boot_update=true" >> $GITHUB_ENV
           echo "pdx206_boot_update=true" >> $GITHUB_OUTPUT
           echo "PDX206_SOURCE_BOOT_IMAGE=$pdx206_boot" >> $GITHUB_ENV
+          echo "PDX206_SOURCE_BOOT_IMAGE=$pdx206_boot" >> $GITHUB_OUTPUT
         fi
 
     - name: Commit variables
@@ -73,11 +79,17 @@ jobs:
   build_kernel_pdx203:
     name: Build PDX203
     needs: check
-    if: ${{ needs.check.outputs.ksu }} == 'true' || ${{ needs.check.outputs.pdx203_boot }} == 'true'
+    if: needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx203_boot == 'true'
     uses: ./.github/workflows/build-kernel_pdx203.yml
+    with:
+      KERNELSU_LATEST_TAG: ${{ needs.check.outputs.KERNELSU_LATEST_TAG }}
+      PDX203_SOURCE_BOOT_IMAGE: ${{ needs.check.outputs.PDX203_SOURCE_BOOT_IMAGE }}
 
   build_kernel_pdx206:
     name: Build PDX206
     needs: check
-    if: ${{ needs.check.outputs.ksu }} == 'true' || ${{ needs.check.outputs.pdx206_boot }} == 'true'
+    if: needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx206_boot == 'true'
     uses: ./.github/workflows/build-kernel_pdx206.yml
+    with:
+      KERNELSU_LATEST_TAG: ${{ needs.check.outputs.KERNELSU_LATEST_TAG }}
+      PDX206_SOURCE_BOOT_IMAGE: ${{ needs.check.outputs.PDX206_SOURCE_BOOT_IMAGE }}
