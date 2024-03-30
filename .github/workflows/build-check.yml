@@ -1,6 +1,5 @@
 name: Build Check
 on:
-
   workflow_dispatch:
 
   schedule:
@@ -14,10 +13,10 @@ jobs:
     outputs:
       ksu: ${{ steps.ksu.outputs.ksu_update }}
       KERNELSU_LATEST_TAG: ${{ steps.ksu.outputs.KERNELSU_LATEST_TAG }}
-      pdx203_boot: ${{ steps.pdx203_boot.outputs.pdx203_boot_update }}
-      PDX203_SOURCE_BOOT_IMAGE: ${{ steps.pdx203_boot.outputs.PDX203_SOURCE_BOOT_IMAGE }}
-      pdx206_boot: ${{ steps.pdx206_boot.outputs.pdx206_boot_update }}
-      PDX206_SOURCE_BOOT_IMAGE: ${{ steps.pdx206_boot.outputs.PDX206_SOURCE_BOOT_IMAGE }}
+      pdx203_boot: ${{ steps.pdx203_boot.outputs.boot_update }}
+      PDX203_SOURCE_BOOT_IMAGE: ${{ steps.pdx203_boot.outputs.SOURCE_BOOT_IMAGE }}
+      pdx206_boot: ${{ steps.pdx206_boot.outputs.boot_update }}
+      PDX206_SOURCE_BOOT_IMAGE: ${{ steps.pdx206_boot.outputs.SOURCE_BOOT_IMAGE }}
 
     steps:
     - uses: actions/checkout@v4
@@ -37,9 +36,7 @@ jobs:
       run: |
         tag=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags' | jq -r '.[0].name')
         if [ "$tag" != "${{ env.KERNELSU_LATEST_TAG }}" ]; then
-          echo "ksu_update=true" >> $GITHUB_ENV
           echo "ksu_update=true" >> $GITHUB_OUTPUT
-          echo "KERNELSU_LATEST_TAG=$tag" >> $GITHUB_ENV
           echo "KERNELSU_LATEST_TAG=$tag" >> $GITHUB_OUTPUT
         fi
 
@@ -48,10 +45,8 @@ jobs:
       run: |
         pdx203_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds' | jq -r '.[0].files[] | select(.filename == "boot.img") | .url')
         if [ "$pdx203_boot" != "${{ env.PDX203_SOURCE_BOOT_IMAGE }}" ]; then
-          echo "pdx203_boot_update=true" >> $GITHUB_ENV
-          echo "pdx203_boot_update=true" >> $GITHUB_OUTPUT
-          echo "PDX203_SOURCE_BOOT_IMAGE=$pdx203_boot" >> $GITHUB_ENV
-          echo "PDX203_SOURCE_BOOT_IMAGE=$pdx203_boot" >> $GITHUB_OUTPUT
+          echo "boot_update=true" >> $GITHUB_OUTPUT
+          echo "SOURCE_BOOT_IMAGE=$pdx203_boot" >> $GITHUB_OUTPUT
         fi
 
     - name: Check PDX206
@@ -59,18 +54,16 @@ jobs:
       run: |
         pdx206_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds' | jq -r '.[0].files[] | select(.filename == "boot.img") | .url')
         if [ "$pdx206_boot" != "${{ env.PDX206_SOURCE_BOOT_IMAGE }}" ]; then
-          echo "pdx206_boot_update=true" >> $GITHUB_ENV
-          echo "pdx206_boot_update=true" >> $GITHUB_OUTPUT
-          echo "PDX206_SOURCE_BOOT_IMAGE=$pdx206_boot" >> $GITHUB_ENV
-          echo "PDX206_SOURCE_BOOT_IMAGE=$pdx206_boot" >> $GITHUB_OUTPUT
+          echo "boot_update=true" >> $GITHUB_OUTPUT
+          echo "SOURCE_BOOT_IMAGE=$pdx206_boot" >> $GITHUB_OUTPUT
         fi
 
     - name: Commit variables
-      if: env.ksu_update == 'true' || env.pdx203_boot_update == 'true' || env.pdx206_boot_update == 'true'
+      if: steps.ksu.outputs.ksu_update == 'true' || steps.pdx203_boot.outputs.boot_update == 'true' || steps.pdx206_boot.outputs.boot_update == 'true'
       run: |
-        echo "KERNELSU_LATEST_TAG=${{ env.KERNELSU_LATEST_TAG }}" > variables.env
-        echo "PDX203_SOURCE_BOOT_IMAGE=${{ env.PDX203_SOURCE_BOOT_IMAGE }}" >> variables.env
-        echo "PDX206_SOURCE_BOOT_IMAGE=${{ env.PDX206_SOURCE_BOOT_IMAGE }}" >> variables.env
+        echo "KERNELSU_LATEST_TAG=${{ steps.ksu.outputs.KERNELSU_LATEST_TAG }}" > variables.env
+        echo "PDX203_SOURCE_BOOT_IMAGE=${{ steps.pdx203_boot.outputs.SOURCE_BOOT_IMAGE }}" >> variables.env
+        echo "PDX206_SOURCE_BOOT_IMAGE=${{ steps.pdx206_boot.outputs.SOURCE_BOOT_IMAGE }}" >> variables.env
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add variables.env
@@ -82,8 +75,9 @@ jobs:
     if: needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx203_boot == 'true'
     uses: ./.github/workflows/build-kernel_pdx203.yml
     with:
-      KERNELSU_LATEST_TAG: ${{ needs.check.outputs.KERNELSU_LATEST_TAG }}
-      PDX203_SOURCE_BOOT_IMAGE: ${{ needs.check.outputs.PDX203_SOURCE_BOOT_IMAGE }}
+      KERNEL_CONFIG: "pdx203_defconfig"
+      KERNELSU_TAG: ${{ needs.check.outputs.KERNELSU_LATEST_TAG }}
+      SOURCE_BOOT_IMAGE: ${{ needs.check.outputs.PDX203_SOURCE_BOOT_IMAGE }}
 
   build_kernel_pdx206:
     name: Build PDX206
@@ -91,5 +85,6 @@ jobs:
     if: needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx206_boot == 'true'
     uses: ./.github/workflows/build-kernel_pdx206.yml
     with:
-      KERNELSU_LATEST_TAG: ${{ needs.check.outputs.KERNELSU_LATEST_TAG }}
-      PDX206_SOURCE_BOOT_IMAGE: ${{ needs.check.outputs.PDX206_SOURCE_BOOT_IMAGE }}
+      KERNEL_CONFIG: "pdx206_defconfig"
+      KERNELSU_TAG: ${{ needs.check.outputs.KERNELSU_LATEST_TAG }}
+      SOURCE_BOOT_IMAGE: ${{ needs.check.outputs.PDX206_SOURCE_BOOT_IMAGE }}

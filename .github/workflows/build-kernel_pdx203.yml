@@ -1,14 +1,6 @@
 name: Build Kernel pdx203
 on:
   workflow_dispatch:
-  workflow_call:
-    inputs:
-      KERNELSU_LATEST_TAG:
-       type: string
-       required: true
-      PDX203_SOURCE_BOOT_IMAGE:
-       type: string
-       required: true
 
 jobs:
   build:
@@ -63,14 +55,6 @@ jobs:
         echo "KSU_EXPECTED_SIZE=$(cat $CONFIG_ENV | grep -w "KSU_EXPECTED_SIZE" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
         echo "KSU_EXPECTED_HASH=$(cat $CONFIG_ENV | grep -w "KSU_EXPECTED_HASH" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
         echo "REMOVE_UNUSED_PACKAGES=$(cat $CONFIG_ENV | grep -w "REMOVE_UNUSED_PACKAGES" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
-
-    - name: Set KERNELSU_TAG
-      run: |
-        echo "KERNELSU_TAG=${{ inputs.KERNELSU_LATEST_TAG }}" >> $GITHUB_ENV
-
-    - name: Set SOURCE_BOOT_IMAGE
-      run: |
-        echo "SOURCE_BOOT_IMAGE=${{ inputs.PDX203_SOURCE_BOOT_IMAGE }}" >> $GITHUB_ENV
 
     - name: Remove unused packages
       if: env.REMOVE_UNUSED_PACKAGES == 'true'
