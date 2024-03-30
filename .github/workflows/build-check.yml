@@ -20,7 +20,7 @@ jobs:
     - name: Check KernelSU
       run: |
         tag=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags' | jq -r '.[0].name')
-        if [ "$tag" != "${{ vars.KERNELSU_LATEST_TAG }}" ]
+        if [ "$tag" != "${{ vars.KERNELSU_LATEST_TAG }}" ]; then
           echo "ksu_update=true" >> $GITHUB_ENV
           gh api \
           --method PATCH \
@@ -34,7 +34,7 @@ jobs:
     - name: Check PDX203
       run: |
         pdx203_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds' | jq -r '.[0].files.[1].url')
-        if [ "$pdx203_boot" != "${{ vars.PDX203_SOURCE_BOOT_IMAGE }}" ]
+        if [ "$pdx203_boot" != "${{ vars.PDX203_SOURCE_BOOT_IMAGE }}" ]; then
           echo "pdx203_boot_update=true" >> $GITHUB_ENV
           gh api \
           --method PATCH \
@@ -48,7 +48,7 @@ jobs:
     - name: Check PDX206
       run: |
         pdx206_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds' | jq -r '.[0].files.[1].url')
-        if [ "$pdx206_boot" != "${{ vars.PDX206_SOURCE_BOOT_IMAGE }}" ]
+        if [ "$pdx206_boot" != "${{ vars.PDX206_SOURCE_BOOT_IMAGE }}" ]; then
           echo "pdx206_boot_update=true" >> $GITHUB_ENV
           gh api \
           --method PATCH \
