@@ -73,7 +73,7 @@ jobs:
     name: Build PDX203
     needs: check
     if: needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx203_boot == 'true'
-    uses: ./.github/workflows/build-kernel_pdx203.yml
+    uses: ./.github/workflows/build-kernel_sm8250.yml
     with:
       KERNEL_CONFIG: "pdx203_defconfig"
       KERNELSU_TAG: ${{ needs.check.outputs.KERNELSU_LATEST_TAG }}
@@ -83,7 +83,7 @@ jobs:
     name: Build PDX206
     needs: check
     if: needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx206_boot == 'true'
-    uses: ./.github/workflows/build-kernel_pdx206.yml
+    uses: ./.github/workflows/build-kernel_sm8250.yml
     with:
       KERNEL_CONFIG: "pdx206_defconfig"
       KERNELSU_TAG: ${{ needs.check.outputs.KERNELSU_LATEST_TAG }}
