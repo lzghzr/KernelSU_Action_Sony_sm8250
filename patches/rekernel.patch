@@ -1,12 +1,12 @@
 diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-index d88f7e439..073ceefdf 100644
+index d88f7e439..7feb753db 100644
 --- a/drivers/android/binder.c
 +++ b/drivers/android/binder.c
 @@ -79,6 +79,7 @@
  
  #include <asm/cacheflush.h>
  
-+#include <rekernel.h>
++#include <linux/rekernel.h>
  #include "binder_alloc.h"
  #include "binder_internal.h"
  #include "binder_trace.h"
@@ -129,14 +129,14 @@ index 000000000..ed059a4d8
 +}
 \ No newline at end of file
 diff --git a/kernel/signal.c b/kernel/signal.c
-index 3ae767e69..36c9f0c5f 100644
+index 3ae767e69..1dd540703 100644
 --- a/kernel/signal.c
 +++ b/kernel/signal.c
 @@ -55,6 +55,7 @@
  #include <asm/unistd.h>
  #include <asm/siginfo.h>
  #include <asm/cacheflush.h>
-+#include <rekernel.h>
++#include <linux/rekernel.h>
  #include "audit.h"	/* audit_signal_info() */
  
  /*
