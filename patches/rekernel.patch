@@ -1,8 +1,16 @@
 diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-index d88f7e439..24c8af4e6 100644
+index d88f7e439..073ceefdf 100644
 --- a/drivers/android/binder.c
 +++ b/drivers/android/binder.c
-@@ -3038,6 +3038,11 @@ static void binder_transaction(struct binder_proc *proc,
+@@ -79,6 +79,7 @@
+ 
+ #include <asm/cacheflush.h>
+ 
++#include <rekernel.h>
+ #include "binder_alloc.h"
+ #include "binder_internal.h"
+ #include "binder_trace.h"
+@@ -3038,6 +3039,11 @@ static void binder_transaction(struct binder_proc *proc,
  		target_proc = target_thread->proc;
  		target_proc->tmp_ref++;
  		binder_inner_proc_unlock(target_thread->proc);
@@ -14,7 +22,7 @@ index d88f7e439..24c8af4e6 100644
  	} else {
  		if (tr->target.handle) {
  			struct binder_ref *ref;
-@@ -3090,6 +3095,11 @@ static void binder_transaction(struct binder_proc *proc,
+@@ -3090,6 +3096,11 @@ static void binder_transaction(struct binder_proc *proc,
  			goto err_dead_binder;
  		}
  		e->to_node = target_node->debug_id;
@@ -26,11 +34,11 @@ index d88f7e439..24c8af4e6 100644
  		if (security_binder_transaction(proc->cred,
  						target_proc->cred) < 0) {
  			return_error = BR_FAILED_REPLY;
-diff --git a/drivers/android/netlink.c b/drivers/android/netlink.c
+diff --git a/include/linux/rekernel.h b/include/linux/rekernel.h
 new file mode 100644
 index 000000000..ed059a4d8
 --- /dev/null
-+++ b/drivers/android/netlink.c
++++ b/include/linux/rekernel.h
 @@ -0,0 +1,87 @@
 +#include <linux/init.h>
 +#include <linux/types.h>
@@ -121,10 +129,18 @@ index 000000000..ed059a4d8
 +}
 \ No newline at end of file
 diff --git a/kernel/signal.c b/kernel/signal.c
-index 3ae767e69..c4c22056a 100644
+index 3ae767e69..36c9f0c5f 100644
 --- a/kernel/signal.c
 +++ b/kernel/signal.c
-@@ -1269,7 +1269,13 @@ int do_send_sig_info(int sig, struct siginfo *info, struct task_struct *p,
+@@ -55,6 +55,7 @@
+ #include <asm/unistd.h>
+ #include <asm/siginfo.h>
+ #include <asm/cacheflush.h>
++#include <rekernel.h>
+ #include "audit.h"	/* audit_signal_info() */
+ 
+ /*
+@@ -1269,7 +1270,13 @@ int do_send_sig_info(int sig, struct siginfo *info, struct task_struct *p,
  {
  	unsigned long flags;
  	int ret = -ESRCH;

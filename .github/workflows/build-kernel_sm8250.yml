@@ -208,9 +208,9 @@ jobs:
     - name: Setup Re:Kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        git apply --check $GITHUB_WORKSPACE/patches/netlink.patch
+        git apply --check $GITHUB_WORKSPACE/patches/rekernel.patch
         if [ $? -eq 0 ]; then
-          git apply $GITHUB_WORKSPACE/patches/netlink.patch
+          git apply $GITHUB_WORKSPACE/patches/rekernel.patch
         fi
   
     - name: Setup KernelSU
