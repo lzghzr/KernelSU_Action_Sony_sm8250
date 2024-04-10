@@ -1,6 +1,11 @@
 name: Build Check
 on:
   workflow_dispatch:
+    inputs:
+      IGNORE_CHECK:
+        type: string
+        required: true
+        default: 'true'
 
   schedule:
     - cron:  '0 8 * * *'
@@ -72,7 +77,7 @@ jobs:
   build_kernel_pdx203:
     name: Build PDX203
     needs: check
-    if: needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx203_boot == 'true'
+    if: inputs.IGNORE_CHECK == 'true' || needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx203_boot == 'true'
     uses: ./.github/workflows/build-kernel_sm8250.yml
     with:
       KERNEL_CONFIG: "pdx203_defconfig"
@@ -82,7 +87,7 @@ jobs:
   build_kernel_pdx206:
     name: Build PDX206
     needs: check
-    if: needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx206_boot == 'true'
+    if: inputs.IGNORE_CHECK == 'true' || needs.check.outputs.ksu == 'true' || needs.check.outputs.pdx206_boot == 'true'
     uses: ./.github/workflows/build-kernel_sm8250.yml
     with:
       KERNEL_CONFIG: "pdx206_defconfig"
