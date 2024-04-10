@@ -40,27 +40,27 @@ jobs:
       id: ksu
       run: |
         tag=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags' | jq -r '.[0].name')
+        echo "KERNELSU_LATEST_TAG=$tag" >> $GITHUB_OUTPUT
         if [ "$tag" != "${{ env.KERNELSU_LATEST_TAG }}" ]; then
           echo "ksu_update=true" >> $GITHUB_OUTPUT
-          echo "KERNELSU_LATEST_TAG=$tag" >> $GITHUB_OUTPUT
         fi
 
     - name: Check PDX203
       id: pdx203_boot
       run: |
         pdx203_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx203/builds' | jq -r '.[0].files[] | select(.filename == "boot.img") | .url')
+        echo "SOURCE_BOOT_IMAGE=$pdx203_boot" >> $GITHUB_OUTPUT
         if [ "$pdx203_boot" != "${{ env.PDX203_SOURCE_BOOT_IMAGE }}" ]; then
           echo "boot_update=true" >> $GITHUB_OUTPUT
-          echo "SOURCE_BOOT_IMAGE=$pdx203_boot" >> $GITHUB_OUTPUT
         fi
 
     - name: Check PDX206
       id: pdx206_boot
       run: |
         pdx206_boot=$(curl 'https://download.lineageos.org/api/v2/devices/pdx206/builds' | jq -r '.[0].files[] | select(.filename == "boot.img") | .url')
+        echo "SOURCE_BOOT_IMAGE=$pdx206_boot" >> $GITHUB_OUTPUT
         if [ "$pdx206_boot" != "${{ env.PDX206_SOURCE_BOOT_IMAGE }}" ]; then
           echo "boot_update=true" >> $GITHUB_OUTPUT
-          echo "SOURCE_BOOT_IMAGE=$pdx206_boot" >> $GITHUB_OUTPUT
         fi
 
     - name: Commit variables
