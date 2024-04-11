@@ -7,9 +7,6 @@ on:
         required: true
         default: 'true'
 
-  schedule:
-    - cron:  '0 8 * * *'
-
 jobs:
   check:
     name: Build Check 
