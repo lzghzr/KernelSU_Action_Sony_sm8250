@@ -1,3 +1,21 @@
+diff --git a/arch/arm64/configs/pdx203_defconfig b/arch/arm64/configs/pdx203_defconfig
+index ad41b367f..319c60226 100644
+--- a/arch/arm64/configs/pdx203_defconfig
++++ b/arch/arm64/configs/pdx203_defconfig
+@@ -756,3 +756,4 @@ CONFIG_CORESIGHT_REMOTE_ETM=y
+ CONFIG_CORESIGHT_TGU=y
+ CONFIG_RMNET_PERF=y
+ CONFIG_RMNET_SHS=y
++CONFIG_REKERNEL=y
+diff --git a/arch/arm64/configs/pdx206_defconfig b/arch/arm64/configs/pdx206_defconfig
+index 17ea0f449..b351392fe 100644
+--- a/arch/arm64/configs/pdx206_defconfig
++++ b/arch/arm64/configs/pdx206_defconfig
+@@ -756,3 +756,4 @@ CONFIG_CORESIGHT_REMOTE_ETM=y
+ CONFIG_CORESIGHT_TGU=y
+ CONFIG_RMNET_PERF=y
+ CONFIG_RMNET_SHS=y
++CONFIG_REKERNEL=y
 diff --git a/drivers/android/binder.c b/drivers/android/binder.c
 index d88f7e439..453c01364 100644
 --- a/drivers/android/binder.c
