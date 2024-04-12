@@ -1,5 +1,5 @@
 diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-index d88f7e439..7feb753db 100644
+index d88f7e439..453c01364 100644
 --- a/drivers/android/binder.c
 +++ b/drivers/android/binder.c
 @@ -79,6 +79,7 @@
@@ -14,11 +14,11 @@ index d88f7e439..7feb753db 100644
  		target_proc = target_thread->proc;
  		target_proc->tmp_ref++;
  		binder_inner_proc_unlock(target_thread->proc);
-+		if (start_rekernel_server() == 0) {
-+			char binder_kmsg[PACKET_SIZE];
-+			snprintf(binder_kmsg, sizeof(binder_kmsg), "type=Binder,bindertype=reply,oneway=%d,from=%d,target=%d;", tr->flags & TF_ONE_WAY, task_uid(proc->tsk).val, task_uid(target_proc->tsk).val);
-+			send_netlink_message(binder_kmsg, strlen(binder_kmsg));
-+		}
++  		if (start_rekernel_server() == 0) {
++    		char binder_kmsg[PACKET_SIZE];
++        	snprintf(binder_kmsg, sizeof(binder_kmsg), "type=Binder,bindertype=reply,oneway=%d,from=%d,target=%d;", tr->flags & TF_ONE_WAY, task_uid(proc->tsk).val, task_uid(target_proc->tsk).val);
++        	send_netlink_message(binder_kmsg, strlen(binder_kmsg));
++  		}
  	} else {
  		if (tr->target.handle) {
  			struct binder_ref *ref;
@@ -26,61 +26,89 @@ index d88f7e439..7feb753db 100644
  			goto err_dead_binder;
  		}
  		e->to_node = target_node->debug_id;
-+			if (start_rekernel_server() == 0) {
-+				char binder_kmsg[PACKET_SIZE];
-+				snprintf(binder_kmsg, sizeof(binder_kmsg), "type=Binder,bindertype=transaction,oneway=%d,from=%d,target=%d;", tr->flags & TF_ONE_WAY, task_uid(proc->tsk).val, task_uid(target_proc->tsk).val);
-+				send_netlink_message(binder_kmsg, strlen(binder_kmsg));
-+			}
++  		if (start_rekernel_server() == 0) {
++    		char binder_kmsg[PACKET_SIZE];
++        	snprintf(binder_kmsg, sizeof(binder_kmsg), "type=Binder,bindertype=transaction,oneway=%d,from=%d,target=%d;", tr->flags & TF_ONE_WAY, task_uid(proc->tsk).val, task_uid(target_proc->tsk).val);
++        	send_netlink_message(binder_kmsg, strlen(binder_kmsg));
++  		}
  		if (security_binder_transaction(proc->cred,
  						target_proc->cred) < 0) {
  			return_error = BR_FAILED_REPLY;
 diff --git a/include/linux/rekernel.h b/include/linux/rekernel.h
 new file mode 100644
-index 000000000..772909a27
+index 000000000..ab51dd364
 --- /dev/null
 +++ b/include/linux/rekernel.h
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,13 @@
 +#include <linux/init.h>
 +#include <linux/types.h>
 +#include <net/sock.h>
 +#include <linux/netlink.h>
 +#include <linux/proc_fs.h>
 +
-+#define NETLINK_REKERNEL     			26
-+#define NETLINK_REKERNEL_VIVO     		25
-+#define USER_PORT          100
-+#define PACKET_SIZE        128
++#define NETLINK_REKERNEL_MAX	 	26
++#define NETLINK_REKERNEL_MIN	 	22
++#define USER_PORT				    100
++#define PACKET_SIZE 				128
++
++extern int send_netlink_message(char *msg, uint16_t len);
++extern int start_rekernel_server(void);
+diff --git a/kernel/Makefile b/kernel/Makefile
+index 2e39ac517..3e6766b7f 100644
+--- a/kernel/Makefile
++++ b/kernel/Makefile
+@@ -52,6 +52,7 @@ obj-y += rcu/
+ obj-y += livepatch/
+ obj-y += dma/
+ 
++obj-$(CONFIG_REKERNEL) += rekernel.o
+ obj-$(CONFIG_CHECKPOINT_RESTORE) += kcmp.o
+ obj-$(CONFIG_FREEZER) += freezer.o
+ obj-$(CONFIG_PROFILING) += profile.o
+diff --git a/kernel/rekernel.c b/kernel/rekernel.c
+new file mode 100644
+index 000000000..d53bb60f0
+--- /dev/null
++++ b/kernel/rekernel.c
+@@ -0,0 +1,87 @@
++#include <linux/init.h>
++#include <linux/types.h>
++#include <net/sock.h>
++#include <linux/netlink.h>
++#include <linux/proc_fs.h>
++#include <linux/rekernel.h>
 +
 +struct sock *rekernel_netlink = NULL;
 +extern struct net init_net;
-+int netlink_unit = NETLINK_REKERNEL;
++int netlink_unit = NETLINK_REKERNEL_MIN;
 +
-+static int send_netlink_message(char *msg, uint16_t len) {
-+    struct sk_buff *skbuffer;
-+    struct nlmsghdr *nlhdr;
++int send_netlink_message(char *msg, uint16_t len) {
++	struct sk_buff *skbuffer;
++	struct nlmsghdr *nlhdr;
 +
-+    skbuffer = nlmsg_new(len, GFP_ATOMIC);
-+    if (!skbuffer) {
-+        printk("netlink alloc failure.\n");
-+        return -1;
-+    }
++	skbuffer = nlmsg_new(len, GFP_ATOMIC);
++	if (!skbuffer) {
++		printk("netlink alloc failure.\n");
++		return -1;
++	}
 +
-+    nlhdr = nlmsg_put(skbuffer, 0, 0, NETLINK_REKERNEL, len, 0);
-+    if (!nlhdr) {
-+        printk("nlmsg_put failaure.\n");
-+        nlmsg_free(skbuffer);
-+        return -1;
-+    }
++	nlhdr = nlmsg_put(skbuffer, 0, 0, netlink_unit, len, 0);
++	if (!nlhdr) {
++		printk("nlmsg_put failaure.\n");
++		nlmsg_free(skbuffer);
++		return -1;
++	}
 +
-+    memcpy(nlmsg_data(nlhdr), msg, len);
-+    return netlink_unicast(rekernel_netlink, skbuffer, USER_PORT, MSG_DONTWAIT);
++	memcpy(nlmsg_data(nlhdr), msg, len);
++	return netlink_unicast(rekernel_netlink, skbuffer, USER_PORT, MSG_DONTWAIT);
 +}
++EXPORT_SYMBOL(send_netlink_message);
 +
 +static void netlink_rcv_msg(struct sk_buff *skbuffer) { // Ignore recv msg.
 +}
 +
 +struct netlink_kernel_cfg rekernel_cfg = { 
-+    .input = netlink_rcv_msg,
++	.input = netlink_rcv_msg,
 +};
 +
 +static int rekernel_unit_show(struct seq_file *m, void *v)
@@ -104,33 +132,34 @@ index 000000000..772909a27
 +
 +static struct proc_dir_entry *rekernel_dir, *rekernel_unit_entry;
 +
-+static int start_rekernel_server(void) {
++int start_rekernel_server(void) {
 +  if (rekernel_netlink)
-+    return 0;
-+  rekernel_netlink = (struct sock *)netlink_kernel_create(&init_net, NETLINK_REKERNEL, &rekernel_cfg);
++	return 0;
++  for (netlink_unit = NETLINK_REKERNEL_MIN; netlink_unit < NETLINK_REKERNEL_MAX; netlink_unit++) {
++	rekernel_netlink = (struct sock *)netlink_kernel_create(&init_net, netlink_unit, &rekernel_cfg);
++	if (rekernel_netlink != NULL)
++	  break;
++  }
++  printk("Created Re:Kernel server! NETLINK UNIT: %d\n", netlink_unit);
 +  if (rekernel_netlink == NULL) {
-+        rekernel_netlink = (struct sock *)netlink_kernel_create(&init_net, NETLINK_REKERNEL_VIVO, &rekernel_cfg);
-+        if (rekernel_netlink == NULL) {
-+    		printk("Failed to create Re:Kernel server!\n");
-+    		return -1;
-+    	}
-+        netlink_unit = NETLINK_REKERNEL_VIVO;
++	printk("Failed to create Re:Kernel server!\n");
++	return -1;
 +  }
 +  rekernel_dir = proc_mkdir("rekernel", NULL);
 +  if (!rekernel_dir)
-+      printk("create /proc/rekernel failed!\n");
++	  printk("create /proc/rekernel failed!\n");
 +  else {
-+      char buff[32];
-+      sprintf(buff, "%d", netlink_unit);
-+      rekernel_unit_entry = proc_create(buff, 0644, rekernel_dir, &rekernel_unit_fops);
-+      if (!rekernel_unit_entry)
-+          printk("create rekernel unit failed!\n");
++	  char buff[32];
++	  sprintf(buff, "%d", netlink_unit);
++	  rekernel_unit_entry = proc_create(buff, 0644, rekernel_dir, &rekernel_unit_fops);
++	  if (!rekernel_unit_entry)
++		  printk("create rekernel unit failed!\n");
 +  }
 +  return 0;
 +}
-\ No newline at end of file
++EXPORT_SYMBOL(start_rekernel_server);
 diff --git a/kernel/signal.c b/kernel/signal.c
-index 3ae767e69..1dd540703 100644
+index 3ae767e69..17254e30f 100644
 --- a/kernel/signal.c
 +++ b/kernel/signal.c
 @@ -55,6 +55,7 @@
@@ -148,9 +177,9 @@ index 3ae767e69..1dd540703 100644
 -
 +	if (sig == SIGKILL || sig == SIGTERM || sig == SIGABRT || sig == SIGQUIT) {
 +		if (start_rekernel_server() == 0) {
-+			char binder_kmsg[PACKET_SIZE];
-+			snprintf(binder_kmsg, sizeof(binder_kmsg), "type=Signal,signal=%d,killer=%d,dst=%d;", sig, task_uid(p).val, task_uid(current).val);
-+			send_netlink_message(binder_kmsg, strlen(binder_kmsg));
++    		char binder_kmsg[PACKET_SIZE];
++    		snprintf(binder_kmsg, sizeof(binder_kmsg), "type=Signal,signal=%d,killer=%d,dst=%d;", sig, task_uid(p).val, task_uid(current).val);
++    		send_netlink_message(binder_kmsg, strlen(binder_kmsg));
 +		}
 +	}
  	if (lock_task_sighand(p, &flags)) {
