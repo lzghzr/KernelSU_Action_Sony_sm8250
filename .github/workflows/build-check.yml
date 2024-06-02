@@ -7,12 +7,9 @@ on:
         required: true
         default: 'true'
 
-  schedule:
-    - cron:  '0 8 * * *'
-
 jobs:
   check:
-    name: Build Check 
+    name: Build Check
     runs-on: ubuntu-latest
 
     outputs:
@@ -34,7 +31,7 @@ jobs:
     - name: Setup environment
       run: |
         sudo apt-get update
-        sudo apt-get install curl jq 
+        sudo apt-get install curl jq
 
     - name: Check KernelSU
       id: ksu
