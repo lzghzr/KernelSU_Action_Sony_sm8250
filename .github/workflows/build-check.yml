@@ -9,7 +9,7 @@ on:
 
 jobs:
   check:
-    name: Build Check 
+    name: Build Check
     runs-on: ubuntu-latest
 
     outputs:
@@ -31,12 +31,12 @@ jobs:
     - name: Setup environment
       run: |
         sudo apt-get update
-        sudo apt-get install curl jq 
+        sudo apt-get install curl jq
 
     - name: Check KernelSU
       id: ksu
       run: |
-        tag=$(curl 'https://api.github.com/repos/tiann/KernelSU/tags' | jq -r '.[0].name')
+        tag="v0.9.5"
         echo "KERNELSU_LATEST_TAG=$tag" >> $GITHUB_OUTPUT
         if [ "$tag" != "${{ env.KERNELSU_LATEST_TAG }}" ]; then
           echo "ksu_update=true" >> $GITHUB_OUTPUT
